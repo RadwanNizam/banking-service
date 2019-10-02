@@ -14,6 +14,9 @@ import com.radwan.repository.AccountRepositoryImpl;
 @Singleton
 public class BankingServiceImpl implements BankingService{
 
+    // The instance of AccountRepositoryImpl is created here
+    // because of a conflict between 'guice' and 'dropwizard'
+    // We will relay on Guice to initialize it in the next release
     private AccountRepository accountRepository = new AccountRepositoryImpl();
 
     public BankingServiceImpl(){
