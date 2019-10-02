@@ -1,20 +1,12 @@
 # Banking Service
 
-A simple service to demonstrate how to user Java Lock to make safe transfer between accounts with support for multi-threading
+A simple service to demonstrate how to user Java Lock to make safe transfer between accounts with support for multi-threading. 
 
 ## NOTE
 You can create multiple accounts using the same owner name; however, the generated account id is unique
 
-# Transfer Process
-```mermaid
-sequenceDiagram
-AccountResource ->> AccountService: transfer (from, to, amount)
-AccountService-->>AccountRepository: getAccount(from)
-AccountService-->>AccountRepository: getAccount(to)
-AccountService-->>Account: transfer(to, amount)
-Note right of Account: method transfer is called on the 'from' account
-```
-## Used Stack
+
+## Technology Stack
 
 Java 1.8
 dropwizard
