@@ -4,6 +4,7 @@ import com.radwan.config.RevolutBankingConfiguration;
 import com.radwan.resources.AccountResource;
 import com.radwan.resources.AccountTransferExceptionMapper;
 import io.dropwizard.Application;
+import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
@@ -27,6 +28,7 @@ public class BankingApplication extends Application<RevolutBankingConfiguration>
                 return configuration.swaggerBundleConfiguration;
             }
         });
+        bootstrap.setConfigurationSourceProvider(new ResourceConfigurationSourceProvider());
     }
 
 

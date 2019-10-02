@@ -50,8 +50,8 @@ public class AccountResource {
     @Path("/actions/transfer/invoke")
     @ApiOperation(value="transfer money between two accounts")
     public Response transfer(@NotNull @Valid AccountTransferRequest accountTransferRequest) throws AccountTransferException {
-        bankingService.transfer(accountTransferRequest.getFrom(),
-                accountTransferRequest.getTo(), accountTransferRequest.getAmount());
+        bankingService.transfer(accountTransferRequest.getSource(),
+                accountTransferRequest.getTarget(), accountTransferRequest.getAmount());
         return Response.ok().build();
     }
 }

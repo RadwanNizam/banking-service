@@ -8,5 +8,5 @@ public interface BankingService {
 
     Account create(Account account) throws AccountCreationException;
     Account get(String accountId);
-    void transfer(String fromAccountId, String toAccountId, double amount) throws AccountTransferException;
+    void transfer(String sourceAccountId, String targetAccountId, double amount) throws AccountTransferException;
 }

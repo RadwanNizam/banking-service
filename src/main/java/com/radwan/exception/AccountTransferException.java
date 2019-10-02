@@ -3,8 +3,8 @@ package com.radwan.exception;
 public class AccountTransferException extends Exception{
 
     private int errorCode;
-    private String fromAccountId;
-    private String toAccountId;
+    private String sourceAccountId;
+    private String targetAccountId;
 
     public AccountTransferException(int errorCode){
         super(AccountTransferErrorCodes.getFriendlyMessage(errorCode));
@@ -19,8 +19,8 @@ public class AccountTransferException extends Exception{
     public AccountTransferException(String fromAccountId, String toAccountId, int errorCode){
         super(AccountTransferErrorCodes.getFriendlyMessage(errorCode));
         this.errorCode = errorCode;
-        this.fromAccountId = fromAccountId;
-        this.toAccountId = toAccountId;
+        this.sourceAccountId = fromAccountId;
+        this.targetAccountId = toAccountId;
     }
 
     public int getErrorCode() {
@@ -31,19 +31,19 @@ public class AccountTransferException extends Exception{
         this.errorCode = errorCode;
     }
 
-    public String getFromAccountId() {
-        return fromAccountId;
+    public String getSourceAccountId() {
+        return sourceAccountId;
     }
 
-    public void setFromAccountId(String fromAccountId) {
-        this.fromAccountId = fromAccountId;
+    public void setSourceAccountId(String sourceAccountId) {
+        this.sourceAccountId = sourceAccountId;
     }
 
-    public String getToAccountId() {
-        return toAccountId;
+    public String getTargetAccountId() {
+        return targetAccountId;
     }
 
-    public void setToAccountId(String toAccountId) {
-        this.toAccountId = toAccountId;
+    public void setTargetAccountId(String targetAccountId) {
+        this.targetAccountId = targetAccountId;
     }
 }

@@ -22,6 +22,8 @@ public class TestAccountRepository {
         Account account = Account.builder().ownerFirstName("fname").ownerLastName("lname").build();
         account = accountRepository.create(account);
         assertNotNull(account.getId());
+        assertEquals("fname", account.getOwnerFirstName());
+        assertEquals("lname", account.getOwnerLastName());
     }
 
     @Test

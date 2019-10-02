@@ -45,26 +45,26 @@ public class BankingServiceImpl implements BankingService{
     }
 
     @Override
-    public void transfer(String fromAccountId, String toAccountId, double amount) throws AccountTransferException {
-        if(!ValidationUtil.isValidAccountId(fromAccountId)){
-            throw new AccountTransferException(AccountTransferErrorCodes.INVALID_FROM_ACCOUNT_ID);
+    public void transfer(String sourceAccountId, String targetAccountId, double amount) throws AccountTransferException {
+        if(!ValidationUtil.isValidAccountId(sourceAccountId)){
+            throw new AccountTransferException(AccountTransferErrorCodes.INVALID_SOURCE_ACCOUNT_ID);
         }
 
-        if(!ValidationUtil.isValidAccountId(toAccountId)){
-            throw new AccountTransferException(AccountTransferErrorCodes.INVALID_TO_ACCOUNT_ID);
+        if(!ValidationUtil.isValidAccountId(targetAccountId)){
+            throw new AccountTransferException(AccountTransferErrorCodes.INVALID_TARGET_ACCOUNT_ID);
         }
 
-        Account fromAccount = accountRepository.find(fromAccountId);
-        if(fromAccount == null){
-            throw new AccountTransferException(AccountTransferErrorCodes.FROM_ACCOUNT_DOES_NOT_EXIST);
+        Account sourceAccount = accountRepository.find(sourceAccountId);
+        if(sourceAccount == null){
+            throw new AccountTransferException(AccountTransferErrorCodes.SOURCE_ACCOUNT_DOES_NOT_EXIST);
         }
 
-        Account toAccount = accountRepository.find(toAccountId);
-        if(toAccount == null){
-            throw new AccountTransferException(AccountTransferErrorCodes.TO_ACCOUNT_DOES_NOT_EXIST);
+        Account targetAccount = accountRepository.find(targetAccountId);
+        if(targetAccount == null){
+            throw new AccountTransferException(AccountTransferErrorCodes.TARGET_ACCOUNT_DOES_NOT_EXIST);
         }
 
-        fromAccount.transfer(toAccount, amount);
+        sourceAccount.transfer(targetAccount, amount);
 
     }
 }

@@ -1,10 +1,10 @@
 package com.radwan.exception;
 
 public final class AccountTransferErrorCodes {
-    public static final int INVALID_FROM_ACCOUNT_ID = 0;
-    public static final int FROM_ACCOUNT_DOES_NOT_EXIST = 1;
-    public static final int INVALID_TO_ACCOUNT_ID = 2;
-    public static final int TO_ACCOUNT_DOES_NOT_EXIST = 3;
+    public static final int INVALID_SOURCE_ACCOUNT_ID = 0;
+    public static final int SOURCE_ACCOUNT_DOES_NOT_EXIST = 1;
+    public static final int INVALID_TARGET_ACCOUNT_ID = 2;
+    public static final int TARGET_ACCOUNT_DOES_NOT_EXIST = 3;
     public static final int INVALID_TRANSFER_AMOUNT = 4;
     public static final int INSUFFICIENT_FUNDS = 5;
     public static final int UNABLE_TO_LOCK_CURRENT_ACCOUNT = 6;
@@ -18,13 +18,13 @@ public final class AccountTransferErrorCodes {
         String message = null;
 
         switch (code) {
-            case INVALID_FROM_ACCOUNT_ID :
+            case INVALID_SOURCE_ACCOUNT_ID:
                 message = "Invalid 'from' account id"; break;
-            case FROM_ACCOUNT_DOES_NOT_EXIST :
+            case SOURCE_ACCOUNT_DOES_NOT_EXIST:
                 message = "'from' account does not exist"; break;
-            case INVALID_TO_ACCOUNT_ID :
+            case INVALID_TARGET_ACCOUNT_ID:
                 message = "Invalid 'to' account id"; break;
-            case TO_ACCOUNT_DOES_NOT_EXIST:
+            case TARGET_ACCOUNT_DOES_NOT_EXIST:
                 message = "'to' account does not exist"; break;
             case INVALID_TRANSFER_AMOUNT:
                 message = "Invalid transfer amount"; break;

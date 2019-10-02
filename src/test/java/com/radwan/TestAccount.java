@@ -29,30 +29,30 @@ public class TestAccount {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private String fromAccountId;
-    private Account fromAccount;
+    private String sourceAccountId;
+    private Account sourceAccount;
     private Account[] targetAccounts;
     private Random random = new Random();
 
     @Test
     /**
-     * Multiple threads try to transfer money from 'fromAccount'
-     * The balance in 'fromAccount' is enough to do only one transfer operation
+     * Multiple threads try to transfer money from 'sourceAccount'
+     * The balance in 'sourceAccount' is enough to do only one transfer operation
      */
     public void testTransferMoney_sc1_success() throws AccountTransferException, InterruptedException {
         int targetAccountsCount = 20;
         ExecutorService ex = Executors.newFixedThreadPool(targetAccountsCount);
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        double fromAccountBalance = 500d;
-        double toAccountBalance = 1000d;
+        double sourceAccountBalance = 500d;
+        double targetAccountBalance = 1000d;
         double transferAmount = 300d;
-        double finalFromAccountBalance = fromAccountBalance - transferAmount;
+        double finalSourceAccountBalance = sourceAccountBalance - transferAmount;
 
-        initAccounts(fromAccountBalance, toAccountBalance, targetAccountsCount);
+        initAccounts(sourceAccountBalance, targetAccountBalance, targetAccountsCount);
         for(int i=0; i<targetAccountsCount; i++) {
             Runnable transferMoneyTask = getTransferMoneyTask(countDownLatch,
-                    fromAccount, targetAccounts[i], transferAmount);
+                    sourceAccount, targetAccounts[i], transferAmount);
             ex.submit(transferMoneyTask);
         }
 
@@ -61,14 +61,14 @@ public class TestAccount {
         ex.awaitTermination(10, TimeUnit.SECONDS);
         ex.shutdown();
 
-        assertEquals(finalFromAccountBalance, fromAccount.getBalance().doubleValue(), 0);
+        assertEquals(finalSourceAccountBalance, sourceAccount.getBalance().doubleValue(), 0);
     }
 
     @Test
     /**
-     * Two threads are calling 'transform'.
-     * thread 1 'fromAccount' -> 'targetAccount'
-     * thread 2 'targetAccount' -> 'fromAccount'
+     * Two threads will transfer money between two accounts only
+     * thread 1 'sourceAccount' -> 'targetAccount'
+     * thread 2 'targetAccount' -> 'sourceAccount'
      *
      * There should not be deadlock when thread1 is trying to lock 'targetAccount'
      * because that account was already locked by thread2
@@ -77,48 +77,48 @@ public class TestAccount {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        double fromAccountBalance = 500d;
-        double toAccountBalance = 1000d;
+        double sourceAccountBalance = 500d;
+        double targetAccountBalance = 1000d;
         double transferAmount1 = 300d;
         double transferAmount2 = 100d;
 
-        double finalFromAccountBalance =
-                fromAccountBalance - transferAmount1 // fromAccount -> toAccount
-                + transferAmount2; // toAccount -> fromAccount
+        double finalSourceAccountBalance =
+                sourceAccountBalance - transferAmount1 // sourceAccount -> targetAccount
+                + transferAmount2; // targetAccount -> sourceAccount
 
-        initAccounts(fromAccountBalance, toAccountBalance, 1);
+        initAccounts(sourceAccountBalance, targetAccountBalance, 1);
         Account targetAccount = targetAccounts[0];
 
-        Runnable transferMoneyTask1 = getTransferMoneyTask(countDownLatch, fromAccount, targetAccount, transferAmount1);
+        Runnable transferMoneyTask1 = getTransferMoneyTask(countDownLatch, sourceAccount, targetAccount, transferAmount1);
         executorService.submit(transferMoneyTask1);
 
-        Runnable transferMoneyTask2 = getTransferMoneyTask(countDownLatch, targetAccount, fromAccount, transferAmount2);
+        Runnable transferMoneyTask2 = getTransferMoneyTask(countDownLatch, targetAccount, sourceAccount, transferAmount2);
         executorService.submit(transferMoneyTask2);
 
         countDownLatch.countDown();
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
 
-        assertEquals(finalFromAccountBalance, fromAccount.getBalance().doubleValue(), 0);
+        assertEquals(finalSourceAccountBalance, sourceAccount.getBalance().doubleValue(), 0);
     }
 
     /**
-     * Initialize @fromAccount and the Accounts objects in the array @targetAccountsCount
+     * Initialize @sourceAccount and the Accounts objects in the array @targetAccountsCount
      */
-    private void initAccounts(double fromAccountBalance, double targetAccountBalance, int targetAccountsCount){
-        fromAccountId = getRandomAccountId();
-        fromAccount = Account.builder().id(fromAccountId).ownerFirstName("fromFname").ownerLastName("fromLname").
-                balance(BigDecimal.valueOf(fromAccountBalance)).build();
+    private void initAccounts(double sourceAccountBalance, double targetAccountBalance, int targetAccountsCount){
+        sourceAccountId = getRandomAccountId();
+        sourceAccount = Account.builder().id(sourceAccountId).ownerFirstName("sourceFname").ownerLastName("sourceLname").
+                balance(BigDecimal.valueOf(sourceAccountBalance)).build();
 
         targetAccounts = new Account[targetAccountsCount];
         for(int i=0;i<targetAccountsCount;i++) {
             String accountId = getRandomAccountId();
-            targetAccounts[i] = Account.builder().id(accountId).ownerFirstName("toFname" + i).ownerLastName("toLname" + i).
+            targetAccounts[i] = Account.builder().id(accountId).ownerFirstName("targetFname" + i).ownerLastName("targetLname" + i).
                     balance(BigDecimal.valueOf(targetAccountBalance)).build();
         }
     }
 
-    private Runnable getTransferMoneyTask(CountDownLatch countDownLatch, Account fromAccount,
+    private Runnable getTransferMoneyTask(CountDownLatch countDownLatch, Account sourceAccount,
                                           Account targetAccount, double transferAmount) {
         return () -> {
             try {
@@ -126,7 +126,7 @@ public class TestAccount {
             } catch (InterruptedException e) {e.printStackTrace();}
 
             try {
-                fromAccount.transfer(targetAccount, transferAmount);
+                sourceAccount.transfer(targetAccount, transferAmount);
             } catch(AccountTransferException e){
                 if (e.getErrorCode() != AccountTransferErrorCodes.INSUFFICIENT_FUNDS){
                     e.printStackTrace();

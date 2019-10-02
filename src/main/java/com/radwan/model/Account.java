@@ -31,43 +31,45 @@ public class Account {
     private Date creationDate;
 
     @JsonIgnore
-    private transient ReadWriteLock lock = new ReentrantReadWriteLock();
-    @JsonIgnore
-    private transient Lock writeLock = lock.writeLock();
-    @JsonIgnore
-    private transient Lock readLock = lock.readLock();
+    private transient ReadWriteLock lock;
 
-    public void transfer(Account to, double amount) throws AccountTransferException {
+    @JsonIgnore
+    private transient Lock writeLock;
+
+    @JsonIgnore
+    private transient Lock readLock;
+
+    public void transfer(Account targetAccount, double amount) throws AccountTransferException {
         if(!ValidationUtil.isValidTransferAmoount(amount)){
             throw new AccountTransferException(AccountTransferErrorCodes.INVALID_TRANSFER_AMOUNT);
         }
 
         BigDecimal currentBalance = null;
-        boolean isLocked = false;
-        boolean isToLocked = false;
+        boolean sourceAccountLocked = false;
+        boolean targetAccountLocked = false;
 
         try {
-            isLocked = this.writeLock.tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
+            sourceAccountLocked = this.writeLock.tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
 
-            if (!isLocked) {
-                throw new AccountTransferException(this.id, to.getId(),
+            if (!sourceAccountLocked) {
+                throw new AccountTransferException(this.id, targetAccount.getId(),
                         AccountTransferErrorCodes.UNABLE_TO_LOCK_CURRENT_ACCOUNT);
             }
 
-            isToLocked = to.getWriteLock().tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
-            if (!isToLocked) {
-                throw new AccountTransferException(this.id, to.getId(),
+            targetAccountLocked = targetAccount.getWriteLock().tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
+            if (!targetAccountLocked) {
+                throw new AccountTransferException(this.id, targetAccount.getId(),
                         AccountTransferErrorCodes.UNABLE_TO_LOCK_TARGET_ACCOUNT);
             }
 
             if (this.balance.doubleValue() < amount) {
-                throw new AccountTransferException(this.id, to.getId(),
+                throw new AccountTransferException(this.id, targetAccount.getId(),
                         AccountTransferErrorCodes.INSUFFICIENT_FUNDS);
             }
 
             currentBalance = this.balance;
             this.balance = this.balance.subtract(BigDecimal.valueOf(amount));
-            to.setBalance(to.getBalanceNoLock().add(BigDecimal.valueOf(amount)));
+            targetAccount.setBalance(targetAccount.getBalanceNoLock().add(BigDecimal.valueOf(amount)));
         } catch (Exception ex) {
             if (currentBalance != null) {
                 this.balance = currentBalance;
@@ -79,12 +81,12 @@ public class Account {
                 throw new AccountTransferException(ex.getMessage(), ex, AccountTransferErrorCodes.INTERNAL_ERROR);
             }
         } finally {
-            if (isLocked) {
+            if (sourceAccountLocked) {
                 this.writeLock.unlock();
             }
 
-            if (isToLocked) {
-                to.getWriteLock().unlock();
+            if (targetAccountLocked) {
+                targetAccount.getWriteLock().unlock();
             }
         }
     }
@@ -102,6 +104,10 @@ public class Account {
         return balance;
     }
 
+    /**
+     * Required for the lombok library to initialize the locks automatically
+     * when creating an Account
+     */
     public static class AccountBuilder {
         private transient ReadWriteLock lock = new ReentrantReadWriteLock();
         private transient Lock writeLock = lock.writeLock();

@@ -38,10 +38,10 @@ public class TestBankingServiceTransfer {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private String fromAccountId;
-    private String toAccountId;
-    private Account from;
-    private Account to;
+    private String sourceAccountId;
+    private String targetAccountId;
+    private Account sourceAccount;
+    private Account targetAccount;
     private Random random = new Random();
 
     @BeforeClass
@@ -63,62 +63,62 @@ public class TestBankingServiceTransfer {
     }
 
     @Test
-    public void testTransferMoney_from_account_id_is_null_fail() throws AccountTransferException {
+    public void testTransferMoney_source_account_id_is_null_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_FROM_ACCOUNT_ID)));
-        bankingService.transfer(null, "toaccount", 100);
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_SOURCE_ACCOUNT_ID)));
+        bankingService.transfer(null, "targetAccount", 100);
     }
 
     @Test
-    public void testTransferMoney_from_account_id_is_empty_fail() throws AccountTransferException {
+    public void testTransferMoney_source_account_id_is_empty_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_FROM_ACCOUNT_ID)));
-        bankingService.transfer("", "toaccount", 100);
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_SOURCE_ACCOUNT_ID)));
+        bankingService.transfer("", "targetAccount", 100);
     }
 
     @Test
-    public void testTransferMoney_from_account_does_not_exist_fail() throws AccountTransferException {
+    public void testTransferMoney_source_account_does_not_exist_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.FROM_ACCOUNT_DOES_NOT_EXIST)));
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.SOURCE_ACCOUNT_DOES_NOT_EXIST)));
 
-        String toAccountId = getRandomAccountId();
-        Account toAccount = Account.builder().id(toAccountId).ownerFirstName("fname").ownerLastName("lname").
+        String targetAccountId = getRandomAccountId();
+        Account targetAccount = Account.builder().id(targetAccountId).ownerFirstName("fname").ownerLastName("lname").
                 balance(new BigDecimal(0)).build();
-        Mockito.doReturn(toAccount).when(accountRepository).find(toAccountId);
+        Mockito.doReturn(targetAccount).when(accountRepository).find(targetAccountId);
 
-        bankingService.transfer("fromAccount", toAccountId, 100);
+        bankingService.transfer("sourceAccount", targetAccountId, 100);
     }
 
     @Test
     public void testTransferMoney_to_account_id_is_null_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_TO_ACCOUNT_ID)));
-        bankingService.transfer("fromAccount", null, 100);
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_TARGET_ACCOUNT_ID)));
+        bankingService.transfer("sourceAccount", null, 100);
     }
 
     @Test
     public void testTransferMoney_to_account_id_is_empty_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_TO_ACCOUNT_ID)));
-        bankingService.transfer("fromAccount", "", 100);
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_TARGET_ACCOUNT_ID)));
+        bankingService.transfer("sourceAccount", "", 100);
     }
 
     public void testTransferMoney_invalid_transfer_amount_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
         thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.INVALID_TRANSFER_AMOUNT)));
-        bankingService.transfer("fromAccount", "toAccount", -1);
+        bankingService.transfer("sourceAccount", "toAccount", -1);
     }
 
     @Test
     public void testTransferMoney_to_account_does_not_exist_fail() throws AccountTransferException {
         thrown.expect(AccountTransferException.class);
-        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.TO_ACCOUNT_DOES_NOT_EXIST)));
+        thrown.expect(hasProperty("errorCode", CoreMatchers.is(AccountTransferErrorCodes.TARGET_ACCOUNT_DOES_NOT_EXIST)));
 
-        String fromAccountId = getRandomAccountId();
-        Account fromAccount = Account.builder().id(fromAccountId).ownerFirstName("fname").ownerLastName("lname").
+        String sourceAccountId = getRandomAccountId();
+        Account sourceAccount = Account.builder().id(sourceAccountId).ownerFirstName("fname").ownerLastName("lname").
                 balance(new BigDecimal(0)).build();
-        Mockito.doReturn(fromAccount).when(accountRepository).find(fromAccountId);
-        bankingService.transfer(fromAccountId, "toAccount", 100);
+        Mockito.doReturn(sourceAccount).when(accountRepository).find(sourceAccountId);
+        bankingService.transfer(sourceAccountId, "toAccount", 100);
     }
 
     @Test
@@ -128,33 +128,33 @@ public class TestBankingServiceTransfer {
 
         initAccounts(500d, 100d);
         BigDecimal transferAmount = new BigDecimal(600);
-        bankingService.transfer(fromAccountId, toAccountId, transferAmount.doubleValue());
+        bankingService.transfer(sourceAccountId, targetAccountId, transferAmount.doubleValue());
     }
 
     @Test
     public void testTransferMoney_success() throws AccountTransferException {
         initAccounts(500d, 100d);
         BigDecimal transferAmount = new BigDecimal(150);
-        BigDecimal fromNewBalance = from.getBalance().subtract(transferAmount);
-        BigDecimal toNewBalance = to.getBalance().add(transferAmount);
-        bankingService.transfer(fromAccountId, toAccountId, transferAmount.doubleValue());
+        BigDecimal sourceAccountNewBalance = sourceAccount.getBalance().subtract(transferAmount);
+        BigDecimal targetAccountNewBalance = targetAccount.getBalance().add(transferAmount);
+        bankingService.transfer(sourceAccountId, targetAccountId, transferAmount.doubleValue());
 
-        assertEquals(fromNewBalance, from.getBalance());
-        assertEquals(toNewBalance, to.getBalance());
+        assertEquals(sourceAccountNewBalance, sourceAccount.getBalance());
+        assertEquals(targetAccountNewBalance, targetAccount.getBalance());
     }
 
     private String getRandomAccountId(){
         return "account-" + random.nextLong();
     }
 
-    private void initAccounts(double fromAccountBalance, double toAccountBalance){
-        fromAccountId = getRandomAccountId();
-        toAccountId = getRandomAccountId();
-        from = Account.builder().id(fromAccountId).ownerFirstName("fromFname").ownerLastName("fromLname").
-                balance(BigDecimal.valueOf(fromAccountBalance)).build();
-        to = Account.builder().id(toAccountId).ownerFirstName("toFname").ownerLastName("toLname").
-                balance(BigDecimal.valueOf(toAccountBalance)).build();
-        Mockito.doReturn(from).when(accountRepository).find(fromAccountId);
-        Mockito.doReturn(to).when(accountRepository).find(toAccountId);
+    private void initAccounts(double sourceAccountBalance, double targetAccountBalance){
+        sourceAccountId = getRandomAccountId();
+        targetAccountId = getRandomAccountId();
+        sourceAccount = Account.builder().id(sourceAccountId).ownerFirstName("sourceFname").ownerLastName("sourceLname").
+                balance(BigDecimal.valueOf(sourceAccountBalance)).build();
+        targetAccount = Account.builder().id(targetAccountId).ownerFirstName("targetFname").ownerLastName("targetLname").
+                balance(BigDecimal.valueOf(targetAccountBalance)).build();
+        Mockito.doReturn(sourceAccount).when(accountRepository).find(sourceAccountId);
+        Mockito.doReturn(targetAccount).when(accountRepository).find(targetAccountId);
     }
 }
