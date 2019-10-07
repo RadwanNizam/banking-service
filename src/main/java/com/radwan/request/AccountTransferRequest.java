@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.core.MediaType;
 

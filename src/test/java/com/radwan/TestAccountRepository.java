@@ -2,7 +2,7 @@ package com.radwan;
 
 import com.radwan.model.Account;
 import com.radwan.repository.AccountRepository;
-import com.radwan.repository.AccountRepositoryImpl;
+import com.radwan.repository.MemoryAccountRepositoryImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,7 +14,7 @@ public class TestAccountRepository {
 
     @Before
     public void setup(){
-        accountRepository = new AccountRepositoryImpl();
+        accountRepository = new MemoryAccountRepositoryImpl();
     }
 
     @Test

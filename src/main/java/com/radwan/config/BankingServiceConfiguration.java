@@ -4,12 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 
-public class RevolutBankingConfiguration extends Configuration {
+public class BankingServiceConfiguration extends Configuration {
 
     @JsonProperty("swagger")
     public SwaggerBundleConfiguration swaggerBundleConfiguration;
-
-    @JsonProperty("locks")
-    private long lockTimeOutInSeconds;
 
 }

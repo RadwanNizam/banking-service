@@ -1,16 +1,20 @@
 package com.radwan.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.radwan.utils.ValidationUtil;
+import com.radwan.exception.AccountAccessErrorCodes;
+import com.radwan.exception.AccountAccessException;
 import com.radwan.exception.AccountTransferErrorCodes;
 import com.radwan.exception.AccountTransferException;
+import com.radwan.lock.AccountLock;
+import com.radwan.lock.JVMAccountLock;
+import com.radwan.utils.ValidationUtil;
 import lombok.*;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,7 +26,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @NoArgsConstructor
 @Consumes(MediaType.APPLICATION_JSON)
 public class Account {
-    private static final long LOCK_TIME_OUT = 15;
 
     private String id;
     private String ownerFirstName;
@@ -31,13 +34,8 @@ public class Account {
     private Date creationDate;
 
     @JsonIgnore
-    private transient ReadWriteLock lock;
-
-    @JsonIgnore
-    private transient Lock writeLock;
-
-    @JsonIgnore
-    private transient Lock readLock;
+    // Real instance of AccountLock can be either JVMAccountLock or ClusteredAccountLock
+    private AccountLock accountLock = new JVMAccountLock();
 
     public void transfer(Account targetAccount, double amount) throws AccountTransferException {
         if(!ValidationUtil.isValidTransferAmoount(amount)){
@@ -49,14 +47,14 @@ public class Account {
         boolean targetAccountLocked = false;
 
         try {
-            sourceAccountLocked = this.writeLock.tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
+            sourceAccountLocked = accountLock.writeLock();
 
             if (!sourceAccountLocked) {
                 throw new AccountTransferException(this.id, targetAccount.getId(),
                         AccountTransferErrorCodes.UNABLE_TO_LOCK_CURRENT_ACCOUNT);
             }
 
-            targetAccountLocked = targetAccount.getWriteLock().tryLock(LOCK_TIME_OUT, TimeUnit.SECONDS);
+            targetAccountLocked = targetAccount.getAccountLock().writeLock();
             if (!targetAccountLocked) {
                 throw new AccountTransferException(this.id, targetAccount.getId(),
                         AccountTransferErrorCodes.UNABLE_TO_LOCK_TARGET_ACCOUNT);
@@ -82,21 +80,23 @@ public class Account {
             }
         } finally {
             if (sourceAccountLocked) {
-                this.writeLock.unlock();
+                this.getAccountLock().writeUnlock();
             }
 
             if (targetAccountLocked) {
-                targetAccount.getWriteLock().unlock();
+                targetAccount.getAccountLock().writeUnlock();
             }
         }
     }
 
-    public BigDecimal getBalance() {
+    public BigDecimal getBalance() throws AccountAccessException {
         try {
-            readLock.lock();
+            accountLock.readLock();
             return balance;
+        } catch (InterruptedException e) {
+            throw new AccountAccessException(AccountAccessErrorCodes.READ_LOCK_TIME_OUT);
         } finally {
-            readLock.unlock();
+            accountLock.readUnlock();
         }
     }
 
@@ -104,13 +104,24 @@ public class Account {
         return balance;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(id, account.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     /**
      * Required for the lombok library to initialize the locks automatically
      * when creating an Account
      */
     public static class AccountBuilder {
-        private transient ReadWriteLock lock = new ReentrantReadWriteLock();
-        private transient Lock writeLock = lock.writeLock();
-        private transient Lock readLock = lock.readLock();
+        private transient AccountLock accountLock = new JVMAccountLock();
     }
 }

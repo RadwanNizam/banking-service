@@ -3,6 +3,7 @@ package com.radwan;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.radwan.exception.AccountAccessException;
 import com.radwan.exception.AccountTransferErrorCodes;
 import com.radwan.exception.AccountTransferException;
 import com.radwan.model.Account;
@@ -24,7 +25,6 @@ import java.util.Random;
 
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class TestBankingServiceTransfer {
 
@@ -132,7 +132,7 @@ public class TestBankingServiceTransfer {
     }
 
     @Test
-    public void testTransferMoney_success() throws AccountTransferException {
+    public void testTransferMoney_success() throws AccountTransferException, AccountAccessException {
         initAccounts(500d, 100d);
         BigDecimal transferAmount = new BigDecimal(150);
         BigDecimal sourceAccountNewBalance = sourceAccount.getBalance().subtract(transferAmount);

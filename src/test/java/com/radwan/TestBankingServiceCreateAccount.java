@@ -3,6 +3,7 @@ package com.radwan;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.radwan.exception.AccountAccessException;
 import com.radwan.exception.AccountCreationException;
 import com.radwan.model.Account;
 import com.radwan.repository.AccountRepository;
@@ -12,16 +13,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import static org.hamcrest.Matchers.containsString;
 
 import java.math.BigDecimal;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class TestBankingServiceCreateAccount {
 
@@ -54,7 +55,7 @@ public class TestBankingServiceCreateAccount {
     }
 
     @Test
-    public void testCreateAccount_all_information_is_provided_success() throws AccountCreationException {
+    public void testCreateAccount_all_information_is_provided_success() throws AccountCreationException, AccountAccessException {
         String accountId = getRandomAccountId();
         Account account = Account.builder().id(accountId).ownerFirstName("fname").ownerLastName("lname").
                balance(new BigDecimal(0)).build();

@@ -1,6 +1,6 @@
 package com.radwan.exception;
 
-public class AccountCreationErrorCodes {
+public final class AccountCreationErrorCodes {
     public static final int INVALID_FIRST_NAME = 0;
     public static final int INVALID_LAST_NAME = 1;
 

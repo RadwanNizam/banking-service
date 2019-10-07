@@ -2,14 +2,14 @@ package com.radwan.service;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.radwan.utils.ValidationUtil;
 import com.radwan.exception.AccountCreationErrorCodes;
 import com.radwan.exception.AccountCreationException;
 import com.radwan.exception.AccountTransferErrorCodes;
 import com.radwan.exception.AccountTransferException;
 import com.radwan.model.Account;
 import com.radwan.repository.AccountRepository;
-import com.radwan.repository.AccountRepositoryImpl;
+import com.radwan.repository.MemoryAccountRepositoryImpl;
+import com.radwan.utils.ValidationUtil;
 
 @Singleton
 public class BankingServiceImpl implements BankingService{
@@ -17,7 +17,7 @@ public class BankingServiceImpl implements BankingService{
     // The instance of AccountRepositoryImpl is created here
     // because of a conflict between 'guice' and 'dropwizard'
     // We will relay on Guice to initialize it in the next release
-    private AccountRepository accountRepository = new AccountRepositoryImpl();
+    private AccountRepository accountRepository = new MemoryAccountRepositoryImpl();
 
     public BankingServiceImpl(){
     }
